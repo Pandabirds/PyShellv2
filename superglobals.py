@@ -1,4 +1,5 @@
-#TODO: Figure out how this works... I have no clue.
+from time import perf_counter
+
 def initialize():
     global stopwatch_list
     global timer_list
@@ -6,6 +7,7 @@ def initialize():
     global information_enabled
     global last_calc_num
     global state
+    global start_time
 
     # List that contains all the stopwatches used by the stopwatch command and the time command.
     stopwatch_list = []
@@ -19,3 +21,5 @@ def initialize():
     last_calc_num = 0
     # State used for keeping track of the current program.
     state = "main"
+    # Superglobal to store the amount of time PyShell has been running.
+    start_time = perf_counter()

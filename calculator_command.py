@@ -1,11 +1,12 @@
-import curses
 import math
 import decimal
-import screenfunctions
-import superglobals
 import threading
 import sys
 import time
+import curses
+
+import screenfunctions
+import superglobals
 
 def main(stdscr):
 
@@ -28,22 +29,28 @@ def main(stdscr):
     input_string = ""
     try:
         while True:
+
+            max_y = stdscr.getmaxyx()[0] - 1
+            max_x = stdscr.getmaxyx()[1] - 1
+
             stdscr.erase()
 
             screenfunctions.render_defaults(stdscr)
 
             stdscr.addstr(1, 45, str(num))
 
-            stdscr.addstr(3, 45, "add; [x]")
-            stdscr.addstr(stdscr.getyx()[0] + 1, 45, "sub; [x]")
-            stdscr.addstr(stdscr.getyx()[0] + 1, 45, "mul; [x]")
-            stdscr.addstr(stdscr.getyx()[0] + 1, 45, "div; [x]")
-            stdscr.addstr(stdscr.getyx()[0] + 1, 45, "pow; [x]")
-            stdscr.addstr(stdscr.getyx()[0] + 1, 45, "root; [x]")
+            screenfunctions.draw_box(stdscr, 0, 44, 2, max_x - 44, 1)
+            screenfunctions.draw_box(stdscr, 3, 44, 7, max_x - 44, 1)
+            stdscr.addstr(4, 45, "add; [x]")
+            stdscr.addstr(5, 45, "sub; [x]")
+            stdscr.addstr(6, 45, "mul; [x]")
+            stdscr.addstr(7, 45, "div; [x]")
+            stdscr.addstr(8, 45, "pow; [x]")
+            stdscr.addstr(9, 45, "root; [x]")
 
-            stdscr.addstr(3, 60, "log")
-            stdscr.addstr(stdscr.getyx()[0] + 1, 59, "log2")
-            stdscr.addstr(stdscr.getyx()[0] + 1, 59, "log10")
+            stdscr.addstr(4, 59, "log")
+            stdscr.addstr(5, 59, "log2")
+            stdscr.addstr(6, 59, "log10")
 
             input_string = screenfunctions.curses_input(stdscr, int(max_y / 2),
             0, f"{superglobals.state}:: ", 42 - len(superglobals.state) - 3)
@@ -86,7 +93,7 @@ def main(stdscr):
                     num /= decimal.Decimal(cmds[1])
                 if cmds[0] == "pow":
                     num **= decimal.Decimal(cmds[1])
-                if cmds[0] == "root":
+                if cmds[0] == "root" and num > 0:
                     num **= decimal.Decimal(1 / decimal.Decimal(cmds[1]))
     except Exception as e:
         pass

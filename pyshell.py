@@ -1,12 +1,15 @@
-# For the entire display system. Would use import * but that would probably break other modules.
-import curses
+#!/usr/bin/python3
+
 # Variety of uses.
 from platform import sys, os, uname
 # Resizing Thread.
 import threading
-import subprocess
+# For the entire display system. Would use import * but that would probably break other modules.
+import curses
 # Custom module for messing with the screen.
-import screenfunctions # ! Create a command that pauses stopwatches/timers/countdown
+
+# Little toolkit to help with development of PyShell.
+import screenfunctions
 # Custom module for small commands.
 import smallcommands
 # Custom module to use superglobal variables across modules.
@@ -26,26 +29,38 @@ if sys.platform.lower() != "linux" and __name__ == "__main__":
 
 # Normally in a multi-file program I wouldn't use main(), but I want to be able to use curses.wrapper()
 def main(stdscr):
+
+    # Subtracting 1 from the values so I can do stuff at the end.
+    max_y = stdscr.getmaxyx()[0] - 1
+    max_x = stdscr.getmaxyx()[1] - 1
+
     superglobals.initialize()
     curses.start_color()
 
     curses.use_default_colors()
-    curses.init_pair(1, 225, -1)
-    stdscr.attron(curses.color_pair(1))
 
-    #curses.use_default_colors()
-    #curses.init_pair(1, curses.COLOR_WHITE, -1)
-    stdscr.attron(curses.A_BOLD)
+    old_dir = os.getcwd()
+    os.chdir(os.path.dirname(sys.argv[0]))
+
+    if not os.path.exists("pyshelldata.txt"):
+        with open("pyshelldata.txt", "w") as file:
+            file.write("color: 225")
+
+    with open("pyshelldata.txt", "r") as file:
+        all_lines = file.readlines()
+
+        color = all_lines[0].split(" ")[1]
+        curses.init_pair(1, int(color), -1)
+        stdscr.attron(curses.color_pair(1))
+
+    os.chdir(old_dir)
+
     stdscr.keypad(True)
 
     # Displays misc information if True.
     information_enabled = True
     # I am using 2 variables, this is for when the program itself wants to change information_enabled.
     information_enabled_setting = True
-
-    # Subtracting 1 from the values so I can do stuff at the end.
-    max_y = stdscr.getmaxyx()[0] - 1
-    max_x = stdscr.getmaxyx()[1] - 1
 
 
     # Using a thread for this so it auto-resizes while in a program.
@@ -71,7 +86,7 @@ def main(stdscr):
         max_y = stdscr.getmaxyx()[0] - 1
         max_x = stdscr.getmaxyx()[1] - 1
         stdscr.erase()
-        
+
         if information_enabled_setting:
             superglobals.information_enabled = True
 
@@ -87,9 +102,9 @@ def main(stdscr):
             cmds = input_string.split("; ")
             cmds[0] = cmds[0].lower()
 
-            if cmds[0] == "exit" or cmds[0] == "quit":
+            if cmds[0] in ["exit", "quit"]:
                 break
-            if cmds[0] == "time" or cmds[0] == "date":
+            if cmds[0] in ["time", "date"]:
                 stdscr.erase()
                 screenfunctions.render_defaults(stdscr)
                 superglobals.state = "time"
@@ -99,13 +114,13 @@ def main(stdscr):
                 smallcommands.stopwatch_command(cmds)
             if cmds[0] == "timer":
                 smallcommands.timer_command(cmds)
-            if cmds[0] == "calc" or cmds[0] == "calculator":
+            if cmds[0] in ["calc", "calculator"]:
                 stdscr.erase()
                 screenfunctions.render_defaults(stdscr)
                 superglobals.state = "calc"
                 calculator_command.main(stdscr)
                 superglobals.state = "main"
-            if cmds[0] == "information" or cmds[0] == "informationtoggle":
+            if cmds[0] in ["information", "informationtoggle"]:
                 superglobals.information_enabled = not superglobals.information_enabled
                 information_enabled_setting = False
             if cmds[0] == "help":
@@ -114,11 +129,14 @@ def main(stdscr):
                 help_command.main(stdscr, cmds)
                 superglobals.state = "main"
             if cmds[0] == "countdown":
-                smallcommands.bv(cmds)
+                smallcommands.countdown_command(cmds)
+            if cmds[0] == "color":
+                smallcommands.color_command(stdscr, cmds)
         if max_y < 39 or max_x < 159:
             superglobals.information_enabled = False
             stdscr.addstr(0, 0, "Py-Shell requires atleast a 160x40 window size.")
             stdscr.getch()                                                      
+            stdscr.erase()
     curses.endwin()
 
 if __name__ == '__main__':

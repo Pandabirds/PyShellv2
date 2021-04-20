@@ -1,9 +1,10 @@
 import curses
 import threading
-import superglobals
-import screenfunctions
 import time
 import datetime
+
+import superglobals
+import screenfunctions
 
 def main(stdscr):
     stdscr.timeout(0)
@@ -27,28 +28,49 @@ def main(stdscr):
     k = 0
     while k != ord('q'):
 
+        # Looping these variable declarations so it automatically updates on new year.
+        current_year = datetime.datetime.now().year
+        old_new_year = datetime.datetime(current_year, 1, 1, 0, 0, 0)
+        next_new_year = datetime.datetime(current_year + 1, 1, 1, 0, 0, 0)
+
         max_y = stdscr.getmaxyx()[0] - 1
         max_x = stdscr.getmaxyx()[1] - 1
 
         stdscr.erase()
         screenfunctions.render_defaults(stdscr)
         stdscr.addstr(0, 45, str(datetime.datetime.now()))
+
+        stdscr.addstr(2, 45, f"PyShell Running: {time.perf_counter() - superglobals.start_time}")
+
+        stdscr.addstr(4, 45, f"Time Since New Year: {datetime.datetime.now() - old_new_year}")
+        stdscr.addstr(5, 45, f"Time Until New Year: {next_new_year - datetime.datetime.now()}")
+
         stopwatch_list = superglobals.stopwatch_list
-        timer_list = superglobals.timer_list            
+        timer_list = superglobals.timer_list
         countdown_list = superglobals.countdown_list
-        if not (len(stopwatch_list) > int(max_y/2) or len(timer_list) > int(max_y/2)):
+        if not (len(stopwatch_list) > int(max_y / 2) or len(timer_list) > int(max_y / 2)):
+            
             for i in range(0, max_y + 1):
-                stdscr.addstr(i, 98, "｜")
+                stdscr.addstr(i, 98, "│")
                 stdscr.addstr(int(max_y / 2), 45, "─" * (max_x - 45))
+            
+            # Displaying Stopwatches.
             for i, stopwatch in enumerate(stopwatch_list):
                 stdscr.addstr(i + 1, 100,
-                f"{stopwatch[0]} : {round(time.perf_counter() - stopwatch[1], 2)} : {round((time.perf_counter() - stopwatch[1]) / 60, 2)} : {round((time.perf_counter() - stopwatch[1]) / 3600, 2)}")
+                f"{stopwatch.name} : {round(time.perf_counter() - stopwatch.seconds, 2)} : {round((time.perf_counter() - stopwatch.seconds) / 60, 2)} : {round((time.perf_counter() - stopwatch.seconds) / 3600, 2)}")
+            
+            # Displaying Timers.
             for i, timer in enumerate(timer_list):
                 stdscr.addstr(i + 2 + int(max_y / 2), 45,
-                f"{timer[0]} : {round(timer[1] - time.perf_counter(), 2)} : {round((timer[1] - time.perf_counter()) / 60, 2)} : {round((timer[1] - time.perf_counter()) / 3600, 2)}")
+                f"{timer.name} : {round(timer.seconds - time.perf_counter(), 2)} : {round((timer.seconds - time.perf_counter()) / 60, 2)} : {round((timer.seconds - time.perf_counter()) / 3600, 2)}")
+            
+            # Displaying Countdowns.
             for i, countdown in enumerate(countdown_list):
                 stdscr.addstr(i + 2 + int(max_y / 2), 100,
-                f"{countdown[0]} : {round(countdown[1] - time.perf_counter(), 2)} : {round((countdown[1] - time.perf_counter()) / 60, 2)} : {round((countdown[1] - time.perf_counter()) / 3600, 2)}")
+                f"{countdown.name} : {round(countdown.seconds - time.perf_counter(), 2)} : {round((countdown.seconds - time.perf_counter()) / 60, 2)} : {round((countdown.seconds - time.perf_counter()) / 3600, 2)}")
+            
+            stdscr.addstr(int(max_y / 2), 43, "├")
+            stdscr.addstr(int(max_y / 2), 98, "┼")
         if len(stopwatch_list) > int(max_y/2) or len(timer_list) > int(max_y/2):
             stdscr.addstr(2, 45, "Please remove some stopwatches/timers/countdowns or")
             stdscr.addstr(3, 45, "increase the window size to see your current stopwatches/timers/countdowns.")

@@ -20,6 +20,8 @@ import calculator_command
 import help_command
 # Time Command Module.
 import time_command
+# Multi-Purpose File Explorer Command Module.
+import multife_command
 
 if sys.platform.lower() != "linux" and __name__ == "__main__":
     print("This Shell is only usable on Linux")
@@ -57,12 +59,6 @@ def main(stdscr):
 
     stdscr.keypad(True)
 
-    # Displays misc information if True.
-    information_enabled = True
-    # I am using 2 variables, this is for when the program itself wants to change information_enabled.
-    information_enabled_setting = True
-
-
     # Using a thread for this so it auto-resizes while in a program.
     def resizing_thread_function():
         while True:
@@ -87,10 +83,10 @@ def main(stdscr):
         max_x = stdscr.getmaxyx()[1] - 1
         stdscr.erase()
 
-        if information_enabled_setting:
-            superglobals.information_enabled = True
-
         if max_y >= 39 and max_x >= 159:
+
+            if superglobals.information_enabled_setting:
+                superglobals.information_enabled = True
 
             screenfunctions.render_defaults(stdscr)
 
@@ -122,7 +118,7 @@ def main(stdscr):
                 superglobals.state = "main"
             if cmds[0] in ["information", "informationtoggle"]:
                 superglobals.information_enabled = not superglobals.information_enabled
-                information_enabled_setting = False
+                superglobals.information_enabled_setting = False
             if cmds[0] == "help":
                 stdscr.erase()
                 screenfunctions.render_defaults(stdscr)
@@ -132,6 +128,12 @@ def main(stdscr):
                 smallcommands.countdown_command(cmds)
             if cmds[0] == "color":
                 smallcommands.color_command(stdscr, cmds)
+            if cmds[0] in ["multife", "files"]:
+                stdscr.erase()
+                screenfunctions.render_defaults(stdscr)
+                superglobals.state = "multife"
+                multife_command.main(stdscr)
+                superglobals.state = "main"
         if max_y < 39 or max_x < 159:
             superglobals.information_enabled = False
             stdscr.addstr(0, 0, "Py-Shell requires atleast a 160x40 window size.")

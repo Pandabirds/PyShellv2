@@ -55,8 +55,8 @@ def stopwatch_command(cmds):
         if cmds[1] == "reset" and screenfunctions.indexists(cmds, 2):
             superglobals.stopwatch_list[int(cmds[2])].seconds = time.perf_counter()
         return 0
-    except Exception:
-        pass
+    except Exception as e:
+        superglobals.error_list.append(e)
 
 def timer_command(cmds):
     try:
@@ -79,14 +79,10 @@ def timer_command(cmds):
             time.perf_counter() + \
             superglobals.timer_list[int(cmds[2])].minutes_until_alarm
         return 0
-    except Exception:
-        pass
+    except Exception as e:
+        superglobals.error_list.append(e)
 
 def countdown_command(cmds):
-    # cmds[1] is new/del
-    # cmds[2] is hours
-    # cmds[3] is minutes
-    # cmds[4] is name
     try:
         cmds[1] = cmds[1].lower()
         if cmds[1] == "new" and screenfunctions.indexists(cmds, 2, 3):
@@ -100,23 +96,18 @@ def countdown_command(cmds):
         if cmds[1] in ["remove", "del"] and screenfunctions.indexists(cmds, 2):
             del superglobals.countdown_list[int(cmds[2])]
         return 0
-    except Exception:
-        pass
+    except Exception as e:
+        superglobals.error_list.append(e)
 
 def color_command(stdscr, cmds):
-    old_dir = os.getcwd()
-    os.chdir(os.path.dirname(sys.argv[0]))
+    with open(os.path.join(os.path.dirname(sys.argv[0]), "pyshelldata.txt"), "w") as file:
 
-    if screenfunctions.is_int(cmds[1]) and int(cmds[1]) < 256:
-        with open("pyshelldata.txt", "w") as file:
+        if screenfunctions.is_int(cmds[1]) and int(cmds[1]) < 256:
             file.write(f"color: {cmds[1]}")
-        curses.init_pair(1, int(cmds[1]), -1)
-        stdscr.attron(curses.color_pair(1))
+            curses.init_pair(1, int(cmds[1]), -1)
+            stdscr.attron(curses.color_pair(1))
 
-    if cmds[1] in ["default", "reset"]:
-        with open("pyshelldata.txt", "w") as file:
+        if cmds[1] in ["default", "reset"]:
             file.write("color: 225")
-        curses.init_pair(1, 225, -1)
-        stdscr.attron(curses.color_pair(1))
-
-    os.chdir(old_dir)
+            curses.init_pair(1, 225, -1)
+            stdscr.attron(curses.color_pair(1))

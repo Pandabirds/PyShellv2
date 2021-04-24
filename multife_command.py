@@ -39,9 +39,10 @@ def main(stdscr):
         
         display_contents = contents
         for i in range(page * max_y, (page + 1) * max_y):
-            if len(display_contents[i]) > max_x - 44:
-                display_contents.insert(i + 1, display_contents[i][max_x - 45:])
-                display_contents[i] = display_contents[i][:max_x - 45]
+            if screenfunctions.indexists(display_contents, i):
+                if len(display_contents[i]) > max_x - 44:
+                    display_contents.insert(i + 1, display_contents[i][max_x - 45:])
+                    display_contents[i] = display_contents[i][:max_x - 45]
 
         curses.curs_set(False)
         k = 0
@@ -55,8 +56,6 @@ def main(stdscr):
                         superglobals.information_enabled = True
 
                     stdscr.erase()
-
-                    stdscr.addstr(2, 0, str(page))
 
                     screenfunctions.render_defaults(stdscr)
 
@@ -107,6 +106,7 @@ def main(stdscr):
 
     while True:
         #try:
+            curses.curs_set(False)
             curses.echo(False)
             
             max_y = stdscr.getmaxyx()[0] - 1
@@ -136,11 +136,14 @@ def main(stdscr):
                 # (int((max_x - 45) / 45) * (max_y - 6)) * page
 
                 # Draws all the files
-                for i in range(int((max_x - 45) / 45)):
+
+                # Sees if the longest filename is above 45, if it is, it sets the column modulus to that filename's length.
+                column_modulus = len(max(current_items, key = len)) + 5 if len(max(current_items, key = len)) > 45 else 45
+                for i in range(int((max_x - 45) / column_modulus)):
                     for ii in range(4, max_y - 1):
                         # (If you are debugging this, I apologize heavily.)
-                        if screenfunctions.indexists(current_items, ((ii - 4) + (max_y - 5) * i) + (int((max_x - 45) / 45) * (max_y - 6)) * page):
-                            stdscr.addstr(ii, 45 + i * 45, f"{(ii + (max_y - 5) * i - 4) + (int((max_x - 45) / 45) * (max_y - 6)) * page} : {current_items[((ii - 4) + (max_y - 5) * i) + (int((max_x - 45) / 45) * (max_y - 6)) * page]}")
+                        if screenfunctions.indexists(current_items, ((ii - 4) + (max_y - 5) * i) + (int((max_x - 45) / column_modulus) * (max_y - 6)) * page):
+                            stdscr.addstr(ii, 45 + i * column_modulus, f"{(ii + (max_y - 5) * i - 4) + (int((max_x - 45) / column_modulus) * (max_y - 6)) * page} : {current_items[((ii - 4) + (max_y - 5) * i) + (int((max_x - 45) / column_modulus) * (max_y - 6)) * page]}")
 
                 k = stdscr.getch()
 
@@ -201,3 +204,4 @@ def main(stdscr):
         # except Exception as e:
         #     superglobals.error_list.append(e)
     curses.echo(True)
+    curses.curse_set(True)
